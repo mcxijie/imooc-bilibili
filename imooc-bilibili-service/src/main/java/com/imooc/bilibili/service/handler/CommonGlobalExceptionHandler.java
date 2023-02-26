@@ -1,7 +1,7 @@
 package com.imooc.bilibili.service.handler;
 
-import com.imooc.bilibili.dao.domain.JsonResponse;
-import com.imooc.bilibili.dao.domain.exception.ConditionException;
+import com.imooc.bilibili.domain.JsonResponse;
+import com.imooc.bilibili.domain.exception.ConditionException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.bind.annotation.ControllerAdvice;

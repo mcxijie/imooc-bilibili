@@ -1,4 +1,4 @@
-package com.imooc.bilibili.dao.domain;
+package com.imooc.bilibili.domain;
 
 public class JsonResponse<T> {
     private String code;

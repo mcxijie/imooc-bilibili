@@ -1,4 +1,4 @@
-package com.imooc.bilibili.dao.domain.exception;
+package com.imooc.bilibili.domain.exception;
 
 public class ConditionException extends RuntimeException{
 
