@@ -13,7 +13,7 @@ import java.util.Date;
 public class TokenUtil {
     private static final String ISSUER = "签发者";
 
-    public static String generateTokne(Long userId) throws Exception {
+    public static String generateToken(Long userId) throws Exception {
         Algorithm algorithm = Algorithm.RSA256(RSAUtil.getPublicKey(), RSAUtil.getPrivateKey());
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
