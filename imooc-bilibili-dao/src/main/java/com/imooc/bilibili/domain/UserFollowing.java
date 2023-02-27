@@ -15,5 +15,7 @@ public class UserFollowing {
 
     private UserInfo userInfo;
 
+    private Boolean followed;
+
 
 }

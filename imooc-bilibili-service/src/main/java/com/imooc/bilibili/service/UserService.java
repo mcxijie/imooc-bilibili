@@ -1,7 +1,9 @@
 package com.imooc.bilibili.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.imooc.bilibili.constant.UserConstant;
 import com.imooc.bilibili.dao.UserDao;
+import com.imooc.bilibili.domain.PageResult;
 import com.imooc.bilibili.domain.User;
 import com.imooc.bilibili.domain.UserInfo;
 import com.imooc.bilibili.domain.exception.ConditionException;
@@ -12,6 +14,7 @@ import com.mysql.jdbc.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -66,24 +69,24 @@ public class UserService {
     public String login(User user) throws Exception {
         String phone = user.getPhone() == null ? "" : user.getPhone();
         String email = user.getEmail() == null ? "" : user.getEmail();
-        if(StringUtils.isNullOrEmpty(phone) && StringUtils.isNullOrEmpty(email)){
+        if (StringUtils.isNullOrEmpty(phone) && StringUtils.isNullOrEmpty(email)) {
             throw new ConditionException("参数异常！");
         }
         User dbUser = userDao.getUserByPhoneOrEmail(phone, email);
-        if(dbUser == null){
+        if (dbUser == null) {
             throw new ConditionException("当前用户不存在！");
         }
 
         String password = user.getPassword();
         String rawPassword;
-        try{
+        try {
             rawPassword = RSAUtil.decrypt(password);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new ConditionException("密码解密失败！");
         }
         String salt = dbUser.getSalt();
         String md5Password = MD5Util.sign(rawPassword, salt, "UTF-8");
-        if(!md5Password.equals(dbUser.getPassword())){
+        if (!md5Password.equals(dbUser.getPassword())) {
             throw new ConditionException("密码错误！");
         }
         return TokenUtil.generateToken(dbUser.getId());
@@ -101,13 +104,13 @@ public class UserService {
         userDao.updateUserInfos(userInfo);
     }
 
-    public void updateUsers(User user) throws Exception{
+    public void updateUsers(User user) throws Exception {
         Long id = user.getId();
         User dbUser = userDao.getUserById(id);
-        if(dbUser == null){
+        if (dbUser == null) {
             throw new ConditionException("用户不存在！");
         }
-        if(!StringUtils.isNullOrEmpty(user.getPassword())){
+        if (!StringUtils.isNullOrEmpty(user.getPassword())) {
             String rawPassword = RSAUtil.decrypt(user.getPassword());
             String md5Password = MD5Util.sign(rawPassword, dbUser.getSalt(), "UTF-8");
             user.setPassword(md5Password);
@@ -122,5 +125,19 @@ public class UserService {
 
     public List<UserInfo> getUserInfoByUserIds(Set<Long> userIdList) {
         return userDao.getUserInfoByUserIds(userIdList);
+    }
+
+    public PageResult<UserInfo> pageListUserInfos(JSONObject params) {
+        Integer no = params.getInteger("no");
+        Integer size = params.getInteger("size");
+        params.put("start", (no - 1) * size);
+        params.put("limit",size);
+        Integer total =  userDao.pageCountUserInfos(params);
+        List<UserInfo> list = new ArrayList<>();
+        if (total > 0){
+            list = userDao.pageListUserInfos(params);
+        }
+
+        return new PageResult<>(total,list);
     }
 }

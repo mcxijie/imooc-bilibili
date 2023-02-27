@@ -80,8 +80,8 @@ public class UserFollowingService {
         for (FollowingGroup group : groupList) {
             List<UserInfo> infoList = new ArrayList<>();
             for (UserFollowing userFollowing : list) {
-                if (group.getId().equals(userFollowing.getGroupId())){
-                   infoList.add(userFollowing.getUserInfo());
+                if (group.getId().equals(userFollowing.getGroupId())) {
+                    infoList.add(userFollowing.getUserInfo());
                 }
             }
 
@@ -95,28 +95,53 @@ public class UserFollowingService {
     // 第一步：获取当前用户的粉丝列表
     // 第二步：根据粉丝的用户id查询基本信息
     // 第三步：查询当前用户是否已经关注该粉丝
-    public List<UserFollowing> getUserFans(Long userId){
-        List<UserFollowing> fansList =  userFollowingDao.getUserFans(userId);
+    public List<UserFollowing> getUserFans(Long userId) {
+        List<UserFollowing> fansList = userFollowingDao.getUserFans(userId);
         Set<Long> fanIdSet = fansList.stream().map(UserFollowing::getUserId).collect(Collectors.toSet());
         List<UserInfo> userInfoList = new ArrayList<>();
-        if (fanIdSet.size() > 0){
+        if (fanIdSet.size() > 0) {
             userInfoList = userService.getUserInfoByUserIds(fanIdSet);
         }
         List<UserFollowing> followingList = userFollowingDao.getUserFollowings(userId);
         for (UserFollowing fan : fansList) {
             for (UserInfo userInfo : userInfoList) {
-                if (fan.getUserId().equals(userInfo.getUserId())){
+                if (fan.getUserId().equals(userInfo.getUserId())) {
                     userInfo.setFollowed(false);
                     fan.setUserInfo(userInfo);
                 }
             }
 
             for (UserFollowing following : followingList) {
-                if (following.getFollowingId().equals(fan.getUserInfo())){
+                if (following.getFollowingId().equals(fan.getUserInfo())) {
                     fan.getUserInfo().setFollowed(true);
                 }
             }
         }
         return fansList;
+    }
+
+    public Long addUserFollowingGroups(FollowingGroup followingGroup) {
+        followingGroup.setCreateTime(new Date());
+        followingGroup.setType(UserConstant.USER_FOLLOWING_GROUP_TYPE_USER);
+        followingGroupService.addFollowingGroup(followingGroup);
+        return followingGroup.getId();
+    }
+
+    public List<FollowingGroup> getUserFollowingGroups(Long userId) {
+        return followingGroupService.getUserFollowingGroups(userId);
+    }
+
+    public List<UserInfo> checkFollowingStatus(List<UserInfo> userInfoList, Long userId) {
+        List<UserFollowing> userFollowingList = userFollowingDao.getUserFollowings(userId);
+        for (UserInfo userInfo : userInfoList) {
+            userInfo.setFollowed(false);
+            for (UserFollowing userFollowing : userFollowingList) {
+                if (userFollowing.getFollowingId().equals(userInfo.getUserId())) {
+                    userInfo.setFollowed(true);
+                }
+            }
+
+            return userInfoList;
+        }
     }
 }
