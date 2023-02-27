@@ -5,10 +5,11 @@ import com.imooc.bilibili.dao.UserFollowingDao;
 import com.imooc.bilibili.domain.FollowingGroup;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Mapper
+@Service
 public class FollowingGroupService {
     @Autowired
     private FollowingGroupDao followingGroupDao;

@@ -140,8 +140,7 @@ public class UserFollowingService {
                     userInfo.setFollowed(true);
                 }
             }
-
-            return userInfoList;
         }
+        return userInfoList;
     }
 }
