@@ -1,5 +1,6 @@
 package com.imooc.bilibili.service;
 
+import com.imooc.bilibili.constant.AuthRoleConstant;
 import com.imooc.bilibili.domain.auth.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,14 @@ public class UserAuthService {
         userAuthorities.setRoleElementOperationList(roleElementOperationList);
         userAuthorities.setRoleMenuList(authRoleMenuList);
         return userAuthorities;
+    }
+
+    public void addUserDefaultRole(Long id) {
+        UserRole userRole = new UserRole();
+        AuthRole role = authRoleService.getRoleByCode(AuthRoleConstant.ROLE_LV0);
+        userRole.setUserId(id);
+        userRole.setRoleId(role.getId());
+        userRoleService.addUserRole(userRole);
     }
 }
 
