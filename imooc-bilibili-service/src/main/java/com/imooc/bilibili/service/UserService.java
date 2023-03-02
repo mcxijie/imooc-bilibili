@@ -148,31 +148,30 @@ public class UserService {
     public Map<String, Object> loginForDts(User user) throws Exception {
         String phone = user.getPhone() == null ? "" : user.getPhone();
         String email = user.getEmail() == null ? "" : user.getEmail();
-        if (StringUtils.isNullOrEmpty(phone) && StringUtils.isNullOrEmpty(email)) {
+        if(StringUtils.isNullOrEmpty(phone) && StringUtils.isNullOrEmpty(email)){
             throw new ConditionException("参数异常！");
         }
         User dbUser = userDao.getUserByPhoneOrEmail(phone, email);
-        if (dbUser == null) {
+        if(dbUser == null){
             throw new ConditionException("当前用户不存在！");
         }
-
         String password = user.getPassword();
         String rawPassword;
-        try {
+        try{
             rawPassword = RSAUtil.decrypt(password);
-        } catch (Exception e) {
+        }catch (Exception e){
             throw new ConditionException("密码解密失败！");
         }
         String salt = dbUser.getSalt();
         String md5Password = MD5Util.sign(rawPassword, salt, "UTF-8");
-        if (!md5Password.equals(dbUser.getPassword())) {
+        if(!md5Password.equals(dbUser.getPassword())){
             throw new ConditionException("密码错误！");
         }
         Long userId = dbUser.getId();
         String accessToken = TokenUtil.generateToken(userId);
         String refreshToken = TokenUtil.generateRefreshToken(userId);
-        //保存refreshToken到数据库
-        userDao.deleteRefreshToken(refreshToken, userId);
+        //保存refresh token到数据库
+        userDao.deleteRefreshTokenByUserId(userId);
         userDao.addRefreshToken(refreshToken, userId, new Date());
         Map<String, Object> result = new HashMap<>();
         result.put("accessToken", accessToken);

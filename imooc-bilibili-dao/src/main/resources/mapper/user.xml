@@ -11,7 +11,7 @@
     </insert>
     <insert id="addRefreshToken">
         insert into t_refresh_token(userId, refreshToken, createTime)
-        VALUES (#{refreshToken}, #{userId}, #{createTime})
+        VALUES (#{userId}, #{refreshToken}, #{createTime})
     </insert>
     <update id="updateUserInfos" parameterType="com.imooc.bilibili.domain.UserInfo">
         update
@@ -57,6 +57,12 @@
         delete
         from t_refresh_token
         where refreshToken = #{refreshToken}
+          and userId = #{userId}
+    </delete>
+    <delete id="deleteRefreshTokenByUserId" parameterType="java.lang.Long">
+        delete
+        from t_refresh_token
+        where userId = #{userId}
     </delete>
 
     <select id="getUserByPhone" parameterType="java.lang.String" resultType="com.imooc.bilibili.domain.User">
