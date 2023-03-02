@@ -123,8 +123,13 @@ public class UserService {
         return userDao.getUserById(followingId);
     }
 
-    public List<UserInfo> getUserInfoByUserIds(Set<Long> userIdList) {
-        return userDao.getUserInfoByUserIds(userIdList);
+    public List<UserInfo> getUserInfoByUserIds(List<Long> userIdList) {
+        List<UserInfo> result = new ArrayList<>();
+        for (int i = 0; i < userIdList.size(); i++) {
+            UserInfo userInfo = userDao.getUserInfoByUserId(userIdList.get(0));
+            result.add(userInfo);
+        }
+        return result;
     }
 
     public PageResult<UserInfo> pageListUserInfos(JSONObject params) {

@@ -7,6 +7,7 @@ import com.imooc.bilibili.domain.UserFollowing;
 import com.imooc.bilibili.domain.UserMoment;
 import com.imooc.bilibili.service.UserFollowingService;
 import com.mysql.jdbc.StringUtils;
+import io.netty.util.internal.StringUtil;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
@@ -36,7 +37,7 @@ public class RocketMQConfig {
 
 
     @Bean("momentsProducer")
-    public DefaultMQProducer momentsProducer() throws Exception {
+    public DefaultMQProducer momentsProducer() throws Exception{
         DefaultMQProducer producer = new DefaultMQProducer(UserMomentsConstant.GROUP_MOMENTS);
         producer.setNamesrvAddr(nameServerAddr);
         producer.start();
@@ -44,38 +45,34 @@ public class RocketMQConfig {
     }
 
     @Bean("momentsConsumer")
-    public DefaultMQPushConsumer momentsConsumer() throws Exception {
+    public DefaultMQPushConsumer momentsConsumer() throws Exception{
         DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(UserMomentsConstant.GROUP_MOMENTS);
         consumer.setNamesrvAddr(nameServerAddr);
         consumer.subscribe(UserMomentsConstant.TOPIC_MOMENTS, "*");
-        consumer.registerMessageListener(new MessageListenerConcurrently() {
-            @Override
-            public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext context) {
-                MessageExt msg = msgs.get(0);
-                if (msg == null) {
-                    return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
-                }
-                String bodyStr = new String(msg.getBody());
-                UserMoment userMoment = JSONObject.toJavaObject(JSONObject.parseObject(bodyStr), UserMoment.class);
-                Long userId = userMoment.getUserId();
-                List<UserFollowing> fanList = userFollowingService.getUserFans(userId);
-                for (UserFollowing fan : fanList) {
-                    String key = "subscribed-" + fan.getUserId();
-                    String subscribedListStr = redisTemplate.opsForValue().get(key);
-                    List<UserMoment> subscribedList;
-                    if (StringUtils.isNullOrEmpty(subscribedListStr)) {
-                        subscribedList = new ArrayList<>();
-                    } else {
-                        subscribedList = JSONArray.parseArray(subscribedListStr, UserMoment.class);
-                    }
-                    subscribedList.add(userMoment);
-                    redisTemplate.opsForValue().set(key, JSONObject.toJSONString(subscribedList));
-                }
+        consumer.registerMessageListener((MessageListenerConcurrently) (msgs, context) -> {
+            MessageExt msg = msgs.get(0);
+            if(msg == null){
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             }
+            String bodyStr = new String(msg.getBody());
+            UserMoment userMoment = JSONObject.toJavaObject(JSONObject.parseObject(bodyStr), UserMoment.class);
+            Long userId = userMoment.getUserId();
+            List<UserFollowing>fanList = userFollowingService.getUserFans(userId);
+            for(UserFollowing fan : fanList){
+                String key = "subscribed-" + fan.getUserId();
+                String subscribedListStr = redisTemplate.opsForValue().get(key);
+                List<UserMoment> subscribedList;
+                if(StringUtil.isNullOrEmpty(subscribedListStr)){
+                    subscribedList = new ArrayList<>();
+                }else{
+                    subscribedList = JSONArray.parseArray(subscribedListStr, UserMoment.class);
+                }
+                subscribedList.add(userMoment);
+                redisTemplate.opsForValue().set(key, JSONObject.toJSONString(subscribedList));
+            }
+            return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
         });
         consumer.start();
         return consumer;
-
     }
 }

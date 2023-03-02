@@ -33,20 +33,18 @@ public class UserFollowingService {
         Long groupId = userFollowing.getGroupId();
         if (groupId == null) {
             FollowingGroup followingGroup = followingGroupService.getByType(UserConstant.USER_FOLLOWING_GROUP_TYPE_DEFAULT);
-            userFollowing.setFollowingId(followingGroup.getId());
+            userFollowing.setGroupId(followingGroup.getId());
         } else {
             FollowingGroup followingGroup = followingGroupService.getById(groupId);
             if (followingGroup == null) {
-                throw new ConditionException("关注分组不存在");
+                throw new ConditionException("关注分组不存在！");
             }
         }
-
         Long followingId = userFollowing.getFollowingId();
         User user = userService.getUserById(followingId);
         if (user == null) {
             throw new ConditionException("关注的用户不存在！");
         }
-
         userFollowingDao.deleteUserFollowing(userFollowing.getUserId(), followingId);
         userFollowing.setCreateTime(new Date());
         userFollowingDao.addUserFollowing(userFollowing);
@@ -57,12 +55,11 @@ public class UserFollowingService {
     // 第三步：将关注用户按关注分组进行分类
     public List<FollowingGroup> getUserFollowings(Long userId) {
         List<UserFollowing> list = userFollowingDao.getUserFollowings(userId);
-        Set<Long> followingIdSet = list.stream().map(UserFollowing::getFollowingId).collect(Collectors.toSet());
+        List<Long> followingIdSet = list.stream().map(UserFollowing::getFollowingId).collect(Collectors.toList());
         List<UserInfo> userInfoList = new ArrayList<>();
         if (followingIdSet.size() > 0) {
             userInfoList = userService.getUserInfoByUserIds(followingIdSet);
         }
-
         for (UserFollowing userFollowing : list) {
             for (UserInfo userInfo : userInfoList) {
                 if (userFollowing.getFollowingId().equals(userInfo.getUserId())) {
@@ -70,7 +67,6 @@ public class UserFollowingService {
                 }
             }
         }
-
         List<FollowingGroup> groupList = followingGroupService.getByUserId(userId);
         FollowingGroup allGroup = new FollowingGroup();
         allGroup.setName(UserConstant.USER_FOLLOWING_GROUP_ALL_NAME);
@@ -83,8 +79,8 @@ public class UserFollowingService {
                 if (group.getId().equals(userFollowing.getGroupId())) {
                     infoList.add(userFollowing.getUserInfo());
                 }
-            }
 
+            }
             group.setFollowingUserInfoList(infoList);
             result.add(group);
         }
@@ -96,28 +92,27 @@ public class UserFollowingService {
     // 第二步：根据粉丝的用户id查询基本信息
     // 第三步：查询当前用户是否已经关注该粉丝
     public List<UserFollowing> getUserFans(Long userId) {
-        List<UserFollowing> fansList = userFollowingDao.getUserFans(userId);
-        Set<Long> fanIdSet = fansList.stream().map(UserFollowing::getUserId).collect(Collectors.toSet());
+        List<UserFollowing> fanList = userFollowingDao.getUserFans(userId);
+        List<Long> fanIdSet = fanList.stream().map(UserFollowing::getUserId).collect(Collectors.toList());
         List<UserInfo> userInfoList = new ArrayList<>();
         if (fanIdSet.size() > 0) {
             userInfoList = userService.getUserInfoByUserIds(fanIdSet);
         }
         List<UserFollowing> followingList = userFollowingDao.getUserFollowings(userId);
-        for (UserFollowing fan : fansList) {
+        for (UserFollowing fan : fanList) {
             for (UserInfo userInfo : userInfoList) {
                 if (fan.getUserId().equals(userInfo.getUserId())) {
                     userInfo.setFollowed(false);
                     fan.setUserInfo(userInfo);
                 }
             }
-
             for (UserFollowing following : followingList) {
-                if (following.getFollowingId().equals(fan.getUserInfo())) {
+                if (following.getFollowingId().equals(fan.getUserId())) {
                     fan.getUserInfo().setFollowed(true);
                 }
             }
         }
-        return fansList;
+        return fanList;
     }
 
     public Long addUserFollowingGroups(FollowingGroup followingGroup) {
