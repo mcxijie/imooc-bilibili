@@ -30,7 +30,7 @@ public interface UserDao {
 
     User getUserByPhoneOrEmail(@Param("phone") String phone, @Param("email") String email);
 
-    List<UserInfo> getUserInfoByUserIds(List<Long> userIdList);
+    List<UserInfo> getUserInfoByUserIds(@Param("userIdList") Set<Long> userIdList);
 
     Integer pageCountUserInfos(Map<String, Object> params);
 

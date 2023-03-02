@@ -55,7 +55,7 @@ public class UserFollowingService {
     // 第三步：将关注用户按关注分组进行分类
     public List<FollowingGroup> getUserFollowings(Long userId) {
         List<UserFollowing> list = userFollowingDao.getUserFollowings(userId);
-        List<Long> followingIdSet = list.stream().map(UserFollowing::getFollowingId).collect(Collectors.toList());
+        Set<Long> followingIdSet = list.stream().map(UserFollowing::getFollowingId).collect(Collectors.toSet());
         List<UserInfo> userInfoList = new ArrayList<>();
         if (followingIdSet.size() > 0) {
             userInfoList = userService.getUserInfoByUserIds(followingIdSet);
@@ -93,7 +93,7 @@ public class UserFollowingService {
     // 第三步：查询当前用户是否已经关注该粉丝
     public List<UserFollowing> getUserFans(Long userId) {
         List<UserFollowing> fanList = userFollowingDao.getUserFans(userId);
-        List<Long> fanIdSet = fanList.stream().map(UserFollowing::getUserId).collect(Collectors.toList());
+        Set<Long> fanIdSet = fanList.stream().map(UserFollowing::getUserId).collect(Collectors.toSet());
         List<UserInfo> userInfoList = new ArrayList<>();
         if (fanIdSet.size() > 0) {
             userInfoList = userService.getUserInfoByUserIds(fanIdSet);
