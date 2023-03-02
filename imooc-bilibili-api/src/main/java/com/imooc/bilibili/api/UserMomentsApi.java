@@ -1,8 +1,10 @@
 package com.imooc.bilibili.api;
 
 import com.imooc.bilibili.api.support.UserSupport;
+import com.imooc.bilibili.constant.AuthRoleConstant;
 import com.imooc.bilibili.domain.JsonResponse;
 import com.imooc.bilibili.domain.UserMoment;
+import com.imooc.bilibili.domain.annotation.ApiLimitedRole;
 import com.imooc.bilibili.service.UserMomentsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ public class UserMomentsApi {
     @Autowired
     private UserSupport userSupport;
 
+    @ApiLimitedRole(limitedRoleCodeList = {AuthRoleConstant.ROLE_LV0})
     @PostMapping("/user-moments")
     public JsonResponse<String> addUserMoments(@RequestBody UserMoment userMoment) throws Exception {
         Long userId = userSupport.getCurrentUserId();
